@@ -9,7 +9,7 @@
     the Free Software Foundation, either version 3 of the License, or
     any later version.
 
-    lattia-vm is distributed in the hope that it will be useful,
+    lattiahirvio/LLMRPG is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
@@ -73,25 +73,33 @@ def getResponse(platform: str, model: str, prompt: str, history: str):
             #response = client.chat(model, messages=[history, {'role': 'user', 'content': prompt}])
             return response
 
-def saveGame(gameData):
+def saveGame(gameData, inventory):
     save = json.dumps(gameData, indent=4)
     filteredSave = [item for item in gameData if (item.get("role") != "system")]
-    save = json.dumps(filteredSave)
+    saveData = {
+        "history": filteredSave,
+        "inventory": inventory
+    }
+    save = json.dumps(saveData)
     with open("save.json", "w") as savefile:
         savefile.write(save)
 
 def loadSave(savePath: str):
     try: 
         with open(savePath, 'r') as savefile:
-            savetoLoad = json.load(savefile)
-        for item in savetoLoad:
+            saveData = json.load(savefile)
+        
+        history = saveData.get("history", [])
+        inventory = saveData.get("inventory", {})
+
+        for item in saveData:
             role = item.get("role")
             content = item.get("content", "")
             if (role == "user"):
                 print(f"You decide to: {CYAN}{content}{RESET}\n")
             elif (role == "assistant"):
                 print(f"{GREEN}{content}{RESET}")
-        return savetoLoad
+        return history, inventory
     except (FileNotFoundError, json.JSONDecodeError) as e:
         print(f"Failed to load save file: {e}")
         exit(1)
@@ -148,12 +156,14 @@ def main():
     savePath = args.save
     print(f"{LIGHT_BLUE}{scenario}{RESET}")
     if (savePath is not None):
-        history += loadSave(args.save)
+        loaded_history, loaded_inventory = loadSave(args.save)
+        history += loaded_history
+        inventory = loaded_inventory
 
     while True:
         userInput: str = input(f"You decide to: {CYAN}"); print(RESET)
         if (userInput == "/exit"):
-            saveGame(history)
+            saveGame(history, inventory)
             return
         if (userInput == "/inventory"):
             print(f"Your inventory is: {inventory}")
