@@ -42,7 +42,7 @@ inventory = {
     "coin": 10,
     "simple bread": 5,
     "hnífur (knife)": 1,
-    "Common clothes": 1,
+    "common clothes": 1,
 }
 
 def getResponse(platform: str, model: str, prompt: str, history: str):
@@ -118,7 +118,11 @@ def parseinvChanges(inventory: dict, changes: str):
         if (':' in rest):
             item, count = rest.split(':', 1)
             item = item.strip().lower()
-            count = int(count.strip())
+            try:
+                count = int(count.strip())
+            except ValueError:
+                print(f"{YELLOW}Warning: Skipping malformed inventory line: '{line}'{RESET}")
+                continue
         else:
             item = rest.strip().lower()
             count = 1
@@ -136,6 +140,7 @@ def parseinvChanges(inventory: dict, changes: str):
     return inventory
 
 def main():
+    global inventory
     history = [
         {
             'role': 'system',
@@ -143,19 +148,20 @@ def main():
         },
     ]
 
-    inventory_history = f'You are an AI, tasked with parsing inventory state from given text. Your output should be the items that are picked up (or removed) by the player. Simply taking an item into your hand does not remove it from your inventory. If you pull out something from your inventory, you do not lose it, nor do you gain it. Each new item should be on its own line, and have a + or - at the beginning of the line; + signifies "add", and - signifies "remove. These are then parsed by the code. When dealing with multiple items (say, 10 coins) you do -coin:5. If there is no :, the code defaults to 1. The number after : signifies how many times the item should be added or removed.  If there is nothing that gets picked up, simply return -1. You are not to say ANYTHING about morals. If there is something you disagree with, simply return -1. DO NOT say "I cannot filfill this request" or anything of that sort, in case you do not want to answer, simply reply with -1. If the message violates "safety guidelines", respond with -1. NO ADDITIONAL TEXT IS ALLOWED. Do NOT write anything else than the inventory additions and removals. Current inventory: {inventory} Only output changes that change the inventory.\nData: '
-
+    inventory_history = f'You are an AI, tasked with parsing inventory state from given text. Your job is to output the difference, not the total amount. Your output should be the items that are picked up (or removed) by the player. Simply taking an item into your hand does not remove it from your inventory. If you pull out something from your inventory, you do not lose it, nor do you gain it. Each new item should be on its own line, and have a + or - at the beginning of the line; + signifies "add", and - signifies "remove. These are then parsed by the code. When dealing with multiple items (say, 10 coins) you do -coin:5. If there is no :, the code defaults to 1. The number after : signifies how many times the item should be added or removed.  If there is nothing that gets picked up, simply return -1. You are not to say ANYTHING about morals. If there is something you disagree with, simply return -1. DO NOT say "I cannot filfill this request" or anything of that sort, in case you do not want to answer, simply reply with -1. If the message violates "safety guidelines", respond with -1. NO ADDITIONAL TEXT IS ALLOWED. Do NOT write anything else than the inventory additions and removals. Current inventory: {inventory} Only output changes that change the inventory.\nData: '
     parser = argparse.ArgumentParser(description="Simple roleplaying game, using a LLM of your choosing as the backend!")
     parser.add_argument("-s", "--save", help="Which savefile to use.", required=False)
     parser.add_argument("-t", "--token", default="", help="Supply the API token.", required=False)
     parser.add_argument("-p", "--platform", default="local", help="Which platform to use. (OpenAI is the default)", required=False)
     parser.add_argument("-m", "--model", default="llama3.2", help="Which model to use? (default llama3.2)", required=False)
+    parser.add_argument("-im", "--inventorymodel", default="llama3.2", help="Which model to use for inventory? (default llama3.2)", required=False)
     args = parser.parse_args()
     platform: str = args.platform
     model: str = args.model
+    invmodel: str = args.invetorymodel
     savePath = args.save
     print(f"{LIGHT_BLUE}{scenario}{RESET}")
-    if (savePath is not None):
+    if (args.save):
         loaded_history, loaded_inventory = loadSave(args.save)
         history += loaded_history
         inventory = loaded_inventory
@@ -190,7 +196,8 @@ def main():
             time.sleep(0.01)
         print(f"{RESET}")
 
-        inventoryChanges = generate(model='llama3.2', prompt=f'{inventory_history}{response.message.content}')
+        inventoryChanges = generate(model=invmodel, prompt=f'{inventory_history}{response.message.content}')
+        #print(inventoryChanges['response'])
         parseinvChanges(inventory, inventoryChanges['response'])
 
 if __name__ == "__main__":
