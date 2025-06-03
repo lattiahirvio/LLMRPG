@@ -168,6 +168,10 @@ def main():
         if (userInput == "/inventory"):
             print(f"Your inventory is: {inventory}")
             continue
+        if (userInput == "/save"):
+            saveGame(history, inventory)
+            print(f"Saved!\n")
+            continue
 
         roll: int = random.randint(1,20)
         #print(roll)
