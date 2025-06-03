@@ -25,10 +25,15 @@ That's literally it, simple game at the end of the day.
 
 ## Usage!
 For simple usage, run [Ollama](https://ollama.com/) on your local machine, and then run the game using `python ./src/main.py`. There's a few commandline options, which are:
+
 `-s, --save <path>   Load a save file`
+
 `-t, --token <key>   OpenAI API key if using OpenAI `
+
 `-p, --platform      "local" (default) or "openai"`
+
 `-m, --model         Model name (e.g. llama3.2) `
+
 The game has 2 commands; `/exit` and `/inventory`. I think the names speak for themselves.
 
 ## Contributing
