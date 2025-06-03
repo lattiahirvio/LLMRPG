@@ -19,8 +19,11 @@ I saw someone post a transcript of something similar on a discord I am in, so of
 
 ## Requirements
 `Python <= 3.8`
+
 `ollama`
+
 `any local LLM of your choosing`
+
 That's literally it, simple game at the end of the day.
 
 ## Usage!
