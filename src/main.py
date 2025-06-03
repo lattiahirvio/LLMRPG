@@ -162,7 +162,7 @@ def main():
         roll: int = random.randint(1,20)
         #print(roll)
 
-        history.append({'role': 'system', 'content': f'Roll: {roll}'})
+        history.append({'role': 'system', 'content': f'Inventory: {inventory}\nRoll: {roll}'})
         response = getResponse(platform, model, userInput, history)
 
         history.append({'role': 'user', 'content': userInput})
